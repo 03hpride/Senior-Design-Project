@@ -86,16 +86,25 @@
         </header>
         <main>
             <div class="container button-row">
-                <button class="new">
-                    New Alert
-                </button>
+                <button id="newAlert">New Alert</button>
+                <div id="newAlertModal" class="modal">
+                    <div class="modalContent">
+                        <span class="close">&times;</span>
+                        <h2>Create New Alert</h2>
+                        <form action="saveAlert.php" method="post">
+                            <label for="alertName">Alert Name</label>
+                            <input type="text" id="alertName" name="alertName" required>
+                            <div class="modalButtons">
+                                <button type="submit">Save Alert</button>
+                                <button type="button" id="cancelAlert">Cancel</button>
+                            </div>
+                        </form>
                 <button class="danger">
                     Delete Alert
                 </button>
                 <button>
                     Edit Alert
                 </button>
-            </div>
 
             <div
                 class="table-responsive"
