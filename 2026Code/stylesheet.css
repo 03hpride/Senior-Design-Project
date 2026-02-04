@@ -43,7 +43,7 @@ body {
     text-decoration: none;
 }
 
-.navbar button {
+.navbar button, .button-link {
     background: linear-gradient(135deg, #6b7280, black);
     color: white;
     border: none;
@@ -54,9 +54,9 @@ body {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.navbar button:hover {
+.navbar button:hover, .button-link:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35); 
 }
 
 h2 {

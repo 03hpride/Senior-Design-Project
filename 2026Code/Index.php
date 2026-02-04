@@ -68,14 +68,14 @@
                                 Preferences
                             </button>
 
-                            <button
+                            <a
                                 href="Login.php"
                                 type="button"
-                                class="btn btn-primary"
+                                class="btn btn-primary button-link"
                                 style="margin-right: 10px;"
                             >
                                 Login
-                            </button>
+                            </a>
                         </ul>
                     </div>
                 </div>
