@@ -51,8 +51,7 @@
                             >
                                 Dashboard
                             </button>
-                        </ul>
-                        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
+
                             <button
                                 type="button"
                                 class="btn btn-primary"
@@ -60,8 +59,7 @@
                             >
                                 Account
                             </button>
-                        </ul>
-                        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
+
                             <button
                                 type="button"
                                 class="btn btn-primary"
@@ -69,14 +67,14 @@
                             >
                                 Preferences
                             </button>
-                        </ul>
-                        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
+
                             <button
+                                href="Login.php"
                                 type="button"
                                 class="btn btn-primary"
                                 style="margin-right: 10px;"
                             >
-                                Logout
+                                Login
                             </button>
                         </ul>
                     </div>
