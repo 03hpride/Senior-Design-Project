@@ -51,23 +51,18 @@ if (isset($_POST['edit_alert'])) {
         ':name' => $_POST['name'],
         ':id' => $_POST['alert_id']
     ]);
-
     header("Location: index.php");
     exit;
 }
 
 if (isset($_POST['delete_alert'])) {
-
     if (empty($_POST['alert_id'])) {
         die("Error: Missing Information");
     }
-
     $stmt = $db->prepare("DELETE FROM alerts WHERE alert_id = :id");
-
     $stmt->execute([
         ':id' => $_POST['alert_id']
-    ]);
-
+        ]);
     header("Location: index.php");
     exit;
 }
@@ -90,141 +85,176 @@ $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Weather Share Notification Sign Up</title>
-        <!-- Required meta tags -->
-        <meta charset="utf-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, shrink-to-fit=no"
-        />
-
-        <!-- Bootstrap CSS v5.2.1 -->
-        <!--<link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-            crossorigin="anonymous"
-        /> --> 
-        <link rel="stylesheet" href="stylesheet.css">
-    </head>
-
-    <body>
-        <header>
-            <center><nav
-                class="navbar navbar-expand-sm navbar-light bg-light"
-            >
-                <div class="container">
-                    <a class="navbar-brand" href="#"><center>Weather Share Notification Center</center></a>
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="collapsibleNavId">
-                        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                style="margin-right: 10px;"
-                            >
-                                Dashboard
-                            </button>
-                        </ul>
-                        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                style="margin-right: 10px;"
-                            >
-                                Account
-                            </button>
-                        </ul>
-                        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                style="margin-right: 10px;"
-                            >
-                                Preferences
-                            </button>
-                        </ul>
-                        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                style="margin-right: 10px;"
-                            >
-                                Logout
-                            </button>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-            </center>
-        </header>
-        <main>
-            <div class="container button-row">
-                <button id="newAlert">New Alert</button>
-                <div id="newAlertModal" class="modal">
-                    <div class="modalContent">
-                        <span class="close">&times;</span>
-                        <h2>Create New Alert</h2>
-                        <form action="saveAlert.php" method="post">
-                            <label for="alertName">Alert Name</label>
-                            <input type="text" id="alertName" name="alertName" required>
-                            <div class="modalButtons">
-                                <button type="submit">Save Alert</button>
-                                <button type="button" id="cancelAlert">Cancel</button>
-                            </div>
-                        </form>
-                <button class="danger">
-                    Delete Alert
-                </button>
-                <button>
-                    Edit Alert
-                </button>
-
-            <div
-                class="table-responsive"
-            >
-                <table
-                    class="table table-primary"
-                    style="margin-top: 10px;"
-                >
-                    <thead>
-                        <tr>
-                            <th scope="col">Column 1</th>
-                            <th scope="col">Column 2</th>
-                            <th scope="col">Column 3</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="">
-                            <td scope="row">Item</td>
-                            <td>Item</td>
-                            <td>Item</td>
-                        </tr>
-                        <tr class="">
-                            <td scope="row">Item</td>
-                            <td>Item</td>
-                            <td>Item</td>
-                        </tr>
-                    </tbody>
-                </table>
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Share Notification Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="stylesheet.css">
+</head>
+<body>
+<header>
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <a class="navbar-brand" href="#">Weather Share Notification Center</a>
+            <div class="nav-buttons">
+                <button>Dashboard</button>
+                <button>Account</button>
+                <button>Preferences</button>
+                <button>Logout</button>
             </div>
-            
-        </main>
-        <footer>
-        </footer>
-        <!-- Bootstrap JavaScript Libraries -->
-        <script
-            src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-            crossorigin="anonymous"
-        ></script>
+        </div>
+    </nav>
+</header>
+<main>
+<div class="container top-actions">
+    <button id="new_alert_btn" class="new">New Alert</button>
+</div>
+<div class="table-responsive">
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Station</th>
+            <th>Parameter</th>
+            <th>Condition</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
 
-        <script
-            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
-            integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
-            crossorigin="anonymous"
-        ></script>
-    </body>
+<?php foreach ($alerts as $alert): ?>
+<tr>
+    <td><?= htmlspecialchars($alert['name']) ?></td>
+    <td><?= htmlspecialchars($alert['station_id']) ?></td>
+    <td><?= htmlspecialchars($alert['parameter_key']) ?></td>
+    <td>
+        <?= htmlspecialchars($alert['operator']) ?>
+        <?= htmlspecialchars($alert['threshold_1']) ?>
+    </td>
+    <td><?= $alert['is_enabled'] ? 'Enabled' : 'Disabled' ?></td>
+    <td>
+        <div class="actions">
+            <button
+                class="action-btn edit-btn"
+                data-id="<?= $alert['alert_id'] ?>"
+                data-name="<?= htmlspecialchars($alert['name']) ?>">
+                <img src="edit.png">
+            </button>
+            <button
+                class="action-btn delete-btn"
+                data-id="<?= $alert['alert_id'] ?>">
+                <img src="delete.png">
+            </button>
+        </div>
+    </td>
+</tr>
+<?php endforeach; ?>
+    </tbody>
+</table>
+</div>
+</main>
+
+
+
+<div id="new_alert_modal" class="modal">
+    <div class="modal_content">
+        <span class="close">&times;</span>
+        <h2>New Alert</h2>
+        <form method="post">
+
+            <label>Name</label>
+            <input type="text" name="name" required>
+            <label>Station</label>
+            <input type="text" name="station_id" required>
+            <label>Parameter</label>
+            <input type="text" name="parameter_key" required>
+            <label>Operator</label>
+                <select name="operator" required>
+                    <option value="">Select</option>
+                    <option value=">">&gt;</option>
+                    <option value="<">&lt;</option>
+                    <option value=">=">&ge;</option>
+                    <option value="<=">&le;</option>
+                </select>
+            <label>Threshold</label>
+            <input type="number" step="any" name="threshold_1">
+        <div class="modal_buttons">
+            <button type="submit" name="create_alert">Create</button>
+            <button type="button" class="cancel">Cancel</button>
+        </div>
+        </form>
+    </div>
+</div>
+<div id="edit_alert_modal" class="modal">
+    <div class="modal_content">
+        <span class="close">&times;</span>
+        <h2>Edit Alert</h2>
+        <form method="post">
+            <input type="hidden" name="alert_id" id="edit_alert_id">
+            <label>Name</label>
+            <input type="text" name="name" id="edit_alert_name" required>
+        <div class="modal_buttons">
+            <button type="submit" name="edit_alert">Save</button>
+            <button type="button" class="cancel">Cancel</button>
+        </div>
+    </form>
+</div>
+</div>
+<div id="delete_alert_modal" class="modal">
+    <div class="modal_content">
+        <span class="close">&times;</span>
+        <h2>Delete Alert</h2>
+            <p>Are you sure you want to delete this alert?</p>
+        <form method="post">
+            <input type="hidden" name="alert_id" id="delete_alert_id">
+        <div class="modal_buttons">
+            <button type="submit" name="delete_alert" class="danger">Delete</button>
+            <button type="button" class="cancel">Cancel</button>
+        </div>
+    </form>
+</div>
+</div>
+
+<script>
+const openModal = m => m.style.display = "flex";
+const closeModal = m => m.style.display = "none";
+const newModal = document.getElementById("new_alert_modal");
+const editModal = document.getElementById("edit_alert_modal");
+const deleteModal = document.getElementById("delete_alert_modal");
+
+document.getElementById("new_alert_btn").onclick = () => openModal(newModal);
+document.querySelectorAll(".close, .cancel").forEach(btn => {
+    btn.onclick = () => {
+        document.querySelectorAll(".modal").forEach(m => closeModal(m));
+    };
+});
+
+document.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.onclick = () => {
+        document.getElementById("edit_alert_id").value =
+            btn.dataset.id;
+        document.getElementById("edit_alert_name").value =
+            btn.dataset.name;
+        openModal(editModal);
+    };
+});
+
+document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.onclick = () => {
+        document.getElementById("delete_alert_id").value =
+            btn.dataset.id;
+        openModal(deleteModal);
+    };
+});
+
+window.onclick = e => {
+    document.querySelectorAll(".modal").forEach(m => {
+        if (e.target === m) {
+            closeModal(m);
+        }
+    });
+};
+</script>
+</body>
 </html>
