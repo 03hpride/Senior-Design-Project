@@ -100,7 +100,9 @@ $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <button>Dashboard</button>
                 <button>Account</button>
                 <button>Preferences</button>
-                <button>Logout</button>
+                <form action="Login.php" method="get" style="display:inline;">
+                    <button type="submit">Login</button>
+                </form>
             </div>
         </div>
     </nav>

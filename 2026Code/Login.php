@@ -48,9 +48,16 @@
                     <label for="username">Username:</label><br>
                     <input type="text" id="username" name="username" required><br><br>
                     <label for="password">Password:</label><br>
-                    <input type="password" id="password" name="password" required><br><br>
+                    <input type="password" id="password" name="password" required><br><br> <!-- password_hash() -->
                     <input type="submit" value="Login">
                 </form>
+
+                <p stlye="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                    Don't have an account?
+                    <a href="Signup.php" style="color:#2563eb; text-decoration: none; font-weight: 600;">
+                        Sign Up
+                    </a>
+                </p>
             </div>
         </main>
         <footer>

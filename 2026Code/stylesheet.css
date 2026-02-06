@@ -203,3 +203,59 @@ tbody tr:hover {
     font-size: 22px;
     cursor: pointer;
 }
+
+main h2 {
+    color: #1f2937;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 10px'
+}
+
+.containerbutton-row {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 28px 30px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+
+.containerbutton-row label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.containerbutton-row input[type='text'], .containerbutton-row input[type='password'] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #f9fafb;
+}
+
+.containerbutton-row input:focus {
+    outline: none;
+    border-color: #2563eb;
+    background: white;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.containerbutton-row input[type='submit'] {
+    width: 100%;
+    margin-top: 16px;
+    padding: 11px;
+    background: linear-gradient(135deg, #6b7280, black);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.containerbutton-row input[type='submit']:hover {
+    opacity: 0.9;
+}
