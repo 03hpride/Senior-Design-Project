@@ -1,10 +1,17 @@
 <?php
+require_once 'load_rwis_data.php';
+
 try {
     $db = new PDO("sqlite:rwis_alerts.db");
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
 }
+
+$data = LoadData(__DIR__. "/output/rwis");
+$stations = $data['stations'];
+$parameters = json_decode(file_get_contents(__DIR__ . "/output/rwis/alertParameters.json"), true);
+$alerts = getAllAlerts();
 
 if (isset($_POST['create_alert'])) {
 
@@ -38,20 +45,27 @@ if (isset($_POST['create_alert'])) {
 }
 
 if (isset($_POST['edit_alert'])) {
-    if (empty($_POST['alert_id']) || empty($_POST['name'])) {
-        die("Error: Missing Information");
+    if (
+        empty($_POST['alert_id']) ||
+        empty($_POST['name']) ||
+        empty($_POST['station_id']) ||
+        empty($_POST['parameter_key']) ||
+        empty($_POST['operator'])
+    ) {
+        die("Erorr: Missing Information");
     }
 
-    $stmt = $db->prepare("
-        UPDATE alerts
-        SET name = :name, updated_at_utc = strftime('%s','now')
-        WHERE alert_id = :id");
+    $stmt = $db->prepare("UPDATE alerts SET name =:name,
+    station_id = :station_id, parameter_key = :parameter_key,
+    operator = :operator, threshold_1 = :threshold_1,
+    updated_at_utc = strftime('%s','now') WHERE alert_id = :id");
 
-    $stmt->execute([
-        ':name' => $_POST['name'],
-        ':id' => $_POST['alert_id']
-    ]);
-    header("Location: index.php");
+    $stmt->execute([':name' => $_POST['name'],
+    ':station_id' => $_POST['station_id'], ':parameter_key' => $_POST['parameter_key'],
+    ':operator' => $_POST['operator'], ':threshold_1' => $_POST['threshold_1'] ?? null,
+    ':id' => $_POST['alert_id']]);
+
+    header("Location: Index.php");
     exit;
 }
 
@@ -67,19 +81,10 @@ if (isset($_POST['delete_alert'])) {
     exit;
 }
 
-$user_id = 1;
+$stmt = $db->prepare("SELECT alert_id, name, station_id, parameter_key, oeprator, threshold_1, is_enabled
+FROM alerts WHERE user_id = 1 ORDER BY created_at_utc DESC");
 
-$stmt = $db->prepare("
-    SELECT alert_id, name, station_id, parameter_key, operator,
-           threshold_1, threshold_2, is_enabled
-    FROM alerts
-    WHERE user_id = :user_id
-    ORDER BY created_at_utc DESC");
-
-$stmt->execute([
-    ':user_id' => $user_id
-]);
-
+$stmt->execute();
 $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -140,7 +145,11 @@ $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <button
                 class="action-btn edit-btn"
                 data-id="<?= $alert['alert_id'] ?>"
-                data-name="<?= htmlspecialchars($alert['name']) ?>">
+                data-name="<?= htmlspecialchars($alert['name']) ?>"
+                data-station="<?= htmlspecialchars($alert['station_id']) ?>"
+                data-parameter="<?= htmlspecialchars($alert['parameter_key']) ?>"
+                data-operator="<?= htmlspecialchars($alert['operator']) ?>"
+                data-threshold="<?= htmlspecialchars($alert['threshold_1']) ?>">
                 <img src="edit.png">
             </button>
             <button
@@ -168,9 +177,23 @@ $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <label>Name</label>
             <input type="text" name="name" required>
             <label>Station</label>
-            <input type="text" name="station_id" required>
+            <select name="station_id" required>
+                <option value="">Select Station</option>
+                <?php foreach ($stations as $station): ?>
+                    <option value="<?= htmlspecialchars($station) ?>">
+                        <?= htmlspecialchars($station) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
             <label>Parameter</label>
-            <input type="text" name="parameter_key" required>
+            <select name="parameter_key" required>
+                <option value="">Select Parameter</option>
+                <?php foreach ($parameters as $key => $meta): ?>
+                    <option value="<?= htmlspecialchars($key) ?>">
+                        <?= htmlspecialchars($key) ?> (<?= htmlspecialchars($meta['unit']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
             <label>Operator</label>
                 <select name="operator" required>
                     <option value="">Select</option>
@@ -196,6 +219,31 @@ $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <input type="hidden" name="alert_id" id="edit_alert_id">
             <label>Name</label>
             <input type="text" name="name" id="edit_alert_name" required>
+            <label>Station</label>
+            <select name="station_id" id="edit_alert_station" required>
+                <?php foreach ($stations as $station): ?>
+                    <option value="<?= htmlspecialchars($station) ?>">
+                        <?= htmlspecialchars($station) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <label>Parameter</label>
+            <select name="parameter_key" id="edit_alert_parameter" required>
+                <?php foreach ($parameters as $key => $meta): ?>
+                    <option value="<?= htmlspecialchars($key) ?>">
+                        <?= htmlspecialchars($key) ?> (<?= htmlspecialchars($meta['unit']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <label>Operator</label>
+            <select name="operator" id="edit_alert_operator" required>
+                <option value=">">&gt;</option>
+                <option value="<">&lt;</option>
+                <option value=">=">&ge;</option>
+                <option value="<=">&le;</option>
+            </select>
+            <label>Threshold</label>
+            <input type="number" setp="any" name="threshold_1" id="edit_alert_threshold">
         <div class="modal_buttons">
             <button type="submit" name="edit_alert">Save</button>
             <button type="button" class="cancel">Cancel</button>

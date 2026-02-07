@@ -16,6 +16,16 @@ output_path = os.path.join(BASE_DIR, "output", "rwis")
 pickle_path = os.path.join(BASE_DIR, "output", "allDistricts_metadata.pickle")
 json_path = os.path.join(BASE_DIR, "output", "rwis_locations.json")
 
+def exportAlertParameters():
+    alertParameters = {}
+    for name, unit, dtype in rwisheaders['sensor_data']:
+        if dtype == 'float':
+            alertParameters[name] = {
+                "unit": unit, "dtype": dtype
+            }
+    outFile = os.path.join(output_path, "alertParameters.json")
+    with open(outFile, "w") as f:
+        json.dump(alertParameters, f, indent=2)
 
 def processData(file, district):
 
@@ -232,6 +242,8 @@ def main():
     parser.add_option('--district', dest='district')
     parser.add_option('--file', dest='data_file')
     options, args = parser.parse_args()
+    
+    exportAlertParameters()
 
     district = options.district
     file = options.data_file
