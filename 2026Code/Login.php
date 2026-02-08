@@ -5,39 +5,7 @@
         <link rel="stylesheet" href="stylesheet.css">
     </head>
     <body>
-        <header>
-            <center>
-            <nav
-                class="navbar navbar-expand-sm navbar-light bg-light"
-            >
-                <div class="container">
-                    <a class="navbar-brand" href="#"><center>Weather Share Notification Center</center></a>
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="collapsibleNavId">
-                        <!-- <ul class="navbar-nav me-auto mt-2 mt-lg-0">
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                style="margin-right: 10px;"
-                            >
-                                Dashboard
-                            </button>
-                        </ul>
-                        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                style="margin-right: 10px;"
-                            >
-                                Account
-                            </button>
-                       </ul> -->
-                    </div>
-                </div>
-            </nav>
-            </center>
-        </header>
+        <?php include 'navbar.php'; ?>
         <main>
             <center>
                 <h2 style="padding: 20px;">Login to Your Account</h2>

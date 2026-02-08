@@ -259,3 +259,11 @@ main h2 {
 .containerbutton-row input[type='submit']:hover {
     opacity: 0.9;
 }
+
+.alert-active {
+    color: white;
+    background: #c0392b;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}

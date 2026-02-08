@@ -9,9 +9,13 @@ try {
 }
 
 $data = LoadData(__DIR__. "/output/rwis");
-$stations = $data['stations'];
+$stations = loadStations(__DIR__ . "/output.rwis");
+
+$parameterFile = __DIR__ . "/output/rwis/alertParameters.json";
+if (!file_exists($parameterFile)) {
+    die("Missing parameter information.");
+}
 $parameters = json_decode(file_get_contents(__DIR__ . "/output/rwis/alertParameters.json"), true);
-$alerts = getAllAlerts();
 
 if (isset($_POST['create_alert'])) {
 
@@ -81,11 +85,14 @@ if (isset($_POST['delete_alert'])) {
     exit;
 }
 
-$stmt = $db->prepare("SELECT alert_id, name, station_id, parameter_key, oeprator, threshold_1, is_enabled
+$stmt = $db->prepare("SELECT alert_id, name, station_id, parameter_key, operator, threshold_1, is_enabled
 FROM alerts WHERE user_id = 1 ORDER BY created_at_utc DESC");
 
 $stmt->execute();
 $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$currentConditions = loadCurrentConditions(__DIR__ . "/output/riws");
+$alerts = evaluateAlerts($alerts, $currentConditions);
 ?>
 
 <!DOCTYPE html>
@@ -97,23 +104,9 @@ $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="stylesheet.css">
 </head>
 <body>
-<header>
-    <nav class="navbar">
-        <div class="container nav-inner">
-            <a class="navbar-brand" href="#">Weather Share Notification Center</a>
-            <div class="nav-buttons">
-                <button>Dashboard</button>
-                <button>Account</button>
-                <button>Preferences</button>
-                <form action="Login.php" method="get" style="display:inline;">
-                    <button type="submit">Login</button>
-                </form>
-            </div>
-        </div>
-    </nav>
-</header>
-<main>
-<div class="container top-actions">
+    <?php include 'navbar.php'; ?>
+<main class="container">
+<div class="top-actions">
     <button id="new_alert_btn" class="new">New Alert</button>
 </div>
 <div class="table-responsive">
@@ -164,9 +157,35 @@ $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </tbody>
 </table>
 </div>
-</main>
+<section class="conditions">
+    <h2>Current Conditions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Station</th>
+                <th>Air Temperature</th>
+                <th>Humidity</th>
+                <th>Wind Speed</th>
+                <th>Precipitation</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
 
-
+<?php foreach (array_slice($currentConditions, 0, 5) as $c): ?>
+    <tr>
+        <td><?= htmlspecialchars($c['station']) ?></td>
+        <td><?= htmlspecialchars($c['essAirTemperature.1'] ?? '-') ?></td>
+        <td><?= htmlspecialchars($c['essRelativeHumidity'] ?? '-') ?></td>
+        <td><?= htmlspecialchars($c['essAverageWindSpeed'] ?? '-') ?></td>
+        <td><?= htmlspecialchars($c['essPrecipRate'] ?? '-') ?></td>
+        <td><?= htmlspecialchars($c['timestampt:localstring'] ?? '-') ?></td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+</setion>
+    </main>
 
 <div id="new_alert_modal" class="modal">
     <div class="modal_content">
@@ -282,18 +301,19 @@ document.querySelectorAll(".close, .cancel").forEach(btn => {
 
 document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.onclick = () => {
-        document.getElementById("edit_alert_id").value =
-            btn.dataset.id;
-        document.getElementById("edit_alert_name").value =
-            btn.dataset.name;
+        edit_alert_id.value = btn.dataset.id;
+        edit_alert_name.value = btn.dataset.name;
+        edit_alert_station.value = btn.dataset.station;
+        edit_alert_parameter.value = btn.dataset.parameter;
+        edit_alert_operator.value = btn.dataset.operator;
+        edit_alert_threshold.value = btn.dataset.threshold;
         openModal(editModal);
     };
 });
 
 document.querySelectorAll(".delete-btn").forEach(btn => {
     btn.onclick = () => {
-        document.getElementById("delete_alert_id").value =
-            btn.dataset.id;
+        delete_alert_id.value = btn.datasetid;
         openModal(deleteModal);
     };
 });
