@@ -1,4 +1,25 @@
 <?php
+header('Content-Type: application/json');
+
+$baseDir = dirname(__FILE__);
+$rwisDir = realpath($baseDir . "/output/RWIS_data");
+
+if ($rwisDir === false) {
+    echo json_encode(["error" => "RWIS data directory not found."]);
+    exit;
+}
+
+$parameterFile = $rwisDir . "/alertParameters.json";
+$alertParameters = [];
+
+if (file_exists($paramterFile)) {
+    $json = file_get_contents($parameterFile);
+    $alertParameters = json_decode($json, true);
+    if (!is_array($alertParameters)) {
+        $alertParameters = [];
+    }
+}
+
 function loadStations($csvDir) {
     $stations = [];
 
@@ -73,3 +94,12 @@ function evaluateAlerts($alerts, $currentConditions) {
     }
     return $alerts;
 }
+
+$stations = loadStations($rwisDir);
+$currentConditions = loadCurrentConditions($rwisDir);
+$alerts =[];
+$evaluatedAlerts = evaluateAlerts($alerts, $currentConditions);
+
+echo json_encode([ "stations" => $stations,
+"currentConditions" => $currentConditions, "alertParameters" => $alertParameters,
+"alerts" => $evaluatedAlerts ]);
