@@ -21,7 +21,7 @@ $stmt = $db->prepare("SELECT user_id, username, password_hash, rols, is_enabled 
 $stmt->execute([':id' => $user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if(!user) {
+if($user) {
     die("User not found.");
 }
 
