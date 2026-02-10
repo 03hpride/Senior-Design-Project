@@ -8,8 +8,8 @@ try {
     die("Database connection failed: " . $e->getMessage());
 }
 
-$data = LoadData(__DIR__. "/output/rwis");
-$stations = loadStations(__DIR__ . "/output.rwis");
+$data = loadData(__DIR__. "/output/rwis");
+$stations = loadStations(__DIR__ . "/output/rwis");
 
 $parameterFile = __DIR__ . "/output/rwis/alertParameters.json";
 if (!file_exists($parameterFile)) {
@@ -91,7 +91,7 @@ FROM alerts WHERE user_id = 1 ORDER BY created_at_utc DESC");
 $stmt->execute();
 $alerts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$currentConditions = loadCurrentConditions(__DIR__ . "/output/riws");
+$currentConditions = loadCurrentConditions(__DIR__ . "/output/rwis");
 $alerts = evaluateAlerts($alerts, $currentConditions);
 ?>
 
