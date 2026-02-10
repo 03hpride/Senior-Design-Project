@@ -8,14 +8,18 @@ try {
     die("Database connection failed: " . $e->getMessage());
 }
 
-$data = loadData(__DIR__. "/output/rwis");
-$stations = loadStations(__DIR__ . "/output/rwis");
+function loadData($rwisDir) {
+    $stations = loadStations($rwisDir);
+    $currentConditions = loadCurrentConditions($rwisDir);
+    return [
+        'stations' => $stations, 'currentConditions' => $currentConditions];
+}
 
 $parameterFile = __DIR__ . "/output/rwis/alertParameters.json";
 if (!file_exists($parameterFile)) {
     die("Missing parameter information.");
 }
-$parameters = json_decode(file_get_contents(__DIR__ . "/output/rwis/alertParameters.json"), true);
+$parameters = json_decode(file_get_contents($parameterFile), true);
 
 if (isset($_POST['create_alert'])) {
 
