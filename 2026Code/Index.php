@@ -8,11 +8,11 @@ try {
     die("Database connection failed: " . $e->getMessage());
 }
 
-$combinedFile = __DIR__ . "/rwis_combined.csv";
-$metadataFile = __DIR__ . "/rwis_metadata_combined.csv";
-$stations = loadStations($combinedfile);
+$combinedFile = __DIR__ . "/../rwis_processed.csv";
+$metadataFile = __DIR__ . "/../rwis_metadata_processed.csv";
+$stations = loadStations($combinedFile);
 $currentConditions = loadCurrentConditions($combinedFile);
-$parameters = loadParameters($metadataFile);
+$parameters = loadParameters($combinedFile);
 
 if (isset($_POST['create_alert'])) {
 
@@ -206,7 +206,7 @@ $alerts = evaluateAlerts($alerts, $currentConditions);
                 <option value="">Select Parameter</option>
                 <?php foreach ($parameters as $key => $meta): ?>
                     <option value="<?= htmlspecialchars($key) ?>">
-                        <?= htmlspecialchars($key) ?> (<?= htmlspecialchars($meta['unit']) ?>)
+                        <?= htmlspecialchars($meta['display'] ?? $key) ?> (<?= htmlspecialchars($meta['unit']) ?>)
                     </option>
                 <?php endforeach; ?>
             </select>
