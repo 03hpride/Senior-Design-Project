@@ -32,22 +32,25 @@ html, body {
     justify-content: center;
     align-items: center;
     gap: 12px;
-    text-align: center;
 }
 
 
 .navbar-brand {
-    font-size: 1.9rem;
-    font-weight: 800;
+    font-size: 1.8rem;
+    font-weight: 700;
     color: black;
     text-decoration: none;
     text-align: center;
+    margin: 0;
 }
 
 
 .nav-buttons {
     display: flex;
+    justify-content: center;
     gap: 12px;
+    align-items: center;
+    margin-top: 12px;
 }
 
 .nav-buttons button {
@@ -66,6 +69,48 @@ html, body {
 
 .nav-buttons button:hover {
     opacity: 0.9;
+}
+
+.nav-user {
+    margin-left: 15px;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    align-items: center;
+}
+
+.nav-brand-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.nav-welcome {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 4px;
+    text-align: center;
+}
+
+.login-title {
+    padding: 20px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1f2937;
+    text-align: center;
+}
+
+.auth-helper {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.auth-helper a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
 }
 
 button {

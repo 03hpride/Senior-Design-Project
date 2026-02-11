@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!empty($_POST['username'])) {
+        $_SESSION['username'] = $_POST['username'];
+        header('Location: Index.php');
+        exit;
+    }
+}
+?>
+
 <!doctype html>
 <html lang="en">
     <head>
@@ -5,14 +17,14 @@
         <link rel="stylesheet" href="stylesheet.css">
     </head>
     <body>
-        <?php include 'navbar.php'; ?>
+        <?php include 'Navbar.php'; ?>
         <main>
             <center>
                 <h2 style="padding: 20px;">Login to Your Account</h2>
             </center>
 
             <div class="containerbutton-row">
-                <form action="authenticate.php" method="post">
+                <form action="login.php" method="post">
                     <label for="username">Username:</label><br>
                     <input type="text" id="username" name="username" required><br><br>
                     <label for="password">Password:</label><br>
