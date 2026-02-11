@@ -1,25 +1,4 @@
 <?php
-header('Content-Type: application/json');
-
-$baseDir = dirname(__FILE__);
-$rwisDir = realpath($baseDir . "/output/rwis");
-
-if ($rwisDir === false) {
-    echo json_encode(["error" => "RWIS data directory not found."]);
-    exit;
-}
-
-$parameterFile = $rwisDir . "/alertParameters.json";
-$alertParameters = [];
-
-if (file_exists($parameterFile)) {
-    $json = file_get_contents($parameterFile);
-    $alertParameters = json_decode($json, true);
-    if (!is_array($alertParameters)) {
-        $alertParameters = [];
-    }
-}
-
 function loadStations($csvDir) {
     $stations = [];
 
@@ -59,12 +38,14 @@ function loadCurrentConditions($csvDir) {
 function evaluateAlerts($alerts, $currentConditions) {
     $byStation = [];
     foreach ($currentConditions as $row) {
-        $byStation[$row['station']] = $row;
+        if (isset($row['station'])) {
+            $byStation[$row['station']] = $row;
+        }
     }
 
     foreach ($alerts as &$alert) {
         $alert['triggered'] = false;
-        if (!$alert['is_enabled']) {
+        if (empty($alert['is_enabled'])) {
             continue;
         }
 
@@ -78,28 +59,15 @@ function evaluateAlerts($alerts, $currentConditions) {
         if (!is_numeric($value)) continue;
 
         switch ($alert['operator']) {
-            case '>':
-                $alert['triggered'] = $value > $alert['threshold_1'];
-                break;
-            case '<':
-                $alert['triggered'] = $value < $alert['threshold_1'];
-                break;
-            case '>=':
-                $alert['triggered'] = $value >= $alert['threshold_1'];
-                break;
-            case '<=':
-                $alert['triggered'] = $value <= $alert['threshold_1'];
-                break;
+            case '>': $alert['triggered'] = $value > $alert['threshold_1'];
+            break;
+            case '<': $alert['triggered'] = $value < $alert['threshold_1'];
+            break;
+            case '>=': $alert['triggered'] = $value >= $alert['threshold_1'];
+            break;
+            case '<=': $alert['triggered'] = $value <= $alert['threshold_1'];
+            break;
         }
     }
     return $alerts;
 }
-
-$stations = loadStations($rwisDir);
-$currentConditions = loadCurrentConditions($rwisDir);
-$alerts =[];
-$evaluatedAlerts = evaluateAlerts($alerts, $currentConditions);
-
-echo json_encode([ "stations" => $stations,
-"currentConditions" => $currentConditions, "alertParameters" => $alertParameters,
-"alerts" => $evaluatedAlerts ]);
