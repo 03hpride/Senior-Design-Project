@@ -19,7 +19,6 @@
             <center><h2 style="padding: 20px;">Create Account</h2></center>
             <div class="containerbutton-row">
                 <form action="Login.php" method="post">
-                <form action="register.php" method="post"> <!-- make register.php -->
                     <label for="username">Username</label><br>
                     <input type="text" id="username" name="username" required><br><br>
                     <label for="email">Email</label><br>
