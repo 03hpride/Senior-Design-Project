@@ -9,7 +9,6 @@ from datetime import datetime, timezone
 from RWIS_utils import *
 from RWIS_Headers import *
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # File Path Configurations
 output_path = os.path.join(BASE_DIR, "output", "rwis")
