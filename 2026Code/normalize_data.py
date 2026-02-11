@@ -1,38 +1,31 @@
 import pandas as pd
 import numpy as np
 import json
-import pickle
-import os
-import sys
 import optparse
 from datetime import datetime, timezone
 from RWIS_utils import *
 from RWIS_Headers import *
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# File Path Configurations
-output_path = os.path.join(BASE_DIR, "output", "rwis")
-pickle_path = os.path.join(BASE_DIR, "output", "allDistricts_metadata.pickle")
-json_path = os.path.join(BASE_DIR, "output", "rwis_locations.json")
-
 def exportAlertParameters():
+    """Export alert parameters to JSON string (returns dict instead of writing file)"""
     alertParameters = {}
     for name, unit, dtype in rwisheaders['sensor_data']:
         if dtype == 'float':
             alertParameters[name] = {
                 "unit": unit, "dtype": dtype
             }
-    outFile = os.path.join(output_path, "alertParameters.json")
-    with open(outFile, "w") as f:
-        json.dump(alertParameters, f, indent=2)
+    return alertParameters
 
 def processData(file, district):
-
+    """Process a single district file and return the processed DataFrames"""
+    
+    print(f"Processing {file} for district {district}")
+    
     rawData = pd.read_csv(filepath_or_buffer=file, dtype='str')
-    rawData = rawData.drop('postmile', axis=1) # Remove 'postMile' since it isn't utilzed anywhere
+    rawData = rawData.drop('postmile', axis=1, errors='ignore')
 
     # setup Pandas DataFrame for metadata
-    metadata_arrays = np.rot90(np.flip(rwisheaders['metadata'], axis = 1), 1)
+    metadata_arrays = np.rot90(np.flip(rwisheaders['metadata'], axis=1), 1)
     metadata_headers = pd.MultiIndex.from_arrays(arrays=metadata_arrays)
     metadataDF = pd.DataFrame(columns=metadata_headers)
 
@@ -46,13 +39,11 @@ def processData(file, district):
                     'route','routeSuffix','postmilePrefix','alignment','milepost','inService','essNumTemperatureSensors',
                     'numEssPavementSensors','numEssSubSurfaceSensors']
 
-    # Tries to find each of the above fields in the raw data and move them to the metadata DataFrame
     for name in metadata_names:
         try:
             metadataDF[name] = rawData.pop(name)
         except Exception:
             pass
-
 
     # Convert Indexes to Station ID's
     stations = stationID(rawData['index'], district)
@@ -84,181 +75,72 @@ def processData(file, district):
 
     # Process All Other Columns Present in Raw Data
     for column in rawData.columns:
-        raw_col = rawData[column] # Extract Column to work on
+        raw_col = rawData[column]
         if column in functionDict:
-            sensorDataDF[column + "_raw"] = raw_col # Add raw column to new dataframe
-            new_col = functionDict[column](raw_col.astype('str')) # Convert raw column using corresponding function
-            sensorDataDF[column] = new_col          # Add converted column to dataframe
+            sensorDataDF[column + "_raw"] = raw_col
+            new_col = functionDict[column](raw_col.astype('str'))
+            sensorDataDF[column] = new_col
 
-    # Export DataFrames to .csv files
-    sensorDataDF.to_csv(output_path + 'current' + district + '_stable.csv', index=False) 
-    metadataDF.to_csv(output_path + 'metadata' + district + '_stable.csv', index=False)
-
-    # Export metadata to JSON file for use in webroot
-    json_keys = ['station', 'timestamp:utc', 'timestamp:local', 'timestamp:localstring','district','locationName','nearbyPlace',
-                'elevation','direction','county','route','routeSuffix','postmilePrefix','alignment','milepost','inService',
-                'essReferenceHeight','essPressureHeight','essWindSensorHeight','essNumTemperatureSensors','numEssPavementSensors',
-                'numEssSubSurfaceSensors','alert','alertAppliesTo','qc_pass']
-
-    # Replace NaN values with empty strings
-    JSONdataframe = metadataDF.copy().fillna('')
-    # Convert values of certain columns to strings
-    for i in range(len(json_keys)):
-        JSONdataframe[json_keys[i]] = JSONdataframe[json_keys[i]].astype('str')
-
-    # Get a list of icons used for stations in WeatherShare
-    icon_list = []
-    for i in range(len(sensorDataDF['essAirTemperature.1'])):
-        try:
-            if ((sensorDataDF['essAirTemperature.1'].values[i][0] != "Error:NTCIP") and 
-                (sensorDataDF['essAirTemperature.1'].values[i][0] <= 32.0) or 
-                (sensorDataDF['essSurfaceTemperature.1'].values[i][0] <= 32.0)):
-                icon_list.append('rwiscold')
-            else:
-                icon_list.append('rwis')
-        except:
-            icon_list.append('rwis')
-    JSONdataframe['icon'] = pd.Series(icon_list)
-
-    # Covnert copy of metadata DataFrame to a dictionary
-    dict = JSONdataframe.to_dict(orient="records")
-
-    # Dictionary to change the keys in a dictionary into a shorter form
-    key_map = {('station', 'id', 'string'): 'station',
-            ('timestamp:utc', 'sec', 'epoch time'): 'timestamp:utc',
-            ('timestamp:local', 'sec', 'epoch time'): 'timestamp:local',
-            ('timestamp:localstring', 'time', 'time string'): 'timestamp:localstring',
-            ('district', 'none', 'int'): 'district',
-            ('locationName', 'none', 'text'): 'locationName',
-            ('nearbyPlace', 'none', 'text'): 'nearbyPlace',
-            ('longitude', 'deg', 'float'): 'longitude',
-            ('latitude', 'deg', 'float'): 'latitude',
-            ('elevation', 'ft', 'float'): 'elevation',
-            ('direction', 'none', 'text'): 'direction',
-            ('county', 'none', 'text'): 'county',
-            ('route', 'none', 'text'): 'route',
-            ('routeSuffix', 'none', 'text'): 'routeSuffix',
-            ('postmilePrefix', 'none', 'text'): 'postmilePrefix',
-            ('alignment', 'none', 'text'): 'alignment',
-            ('milepost', 'mi', 'float'): 'milepost',
-            ('inService', 'none', 'bool'): 'inService',
-            ('essReferenceHeight', 'ft', 'float'): 'essReferenceHeight',
-            ('essPressureHeight', 'ft', 'float'): 'essPressureHeight',
-            ('essWindSensorHeight', 'ft', 'float'): 'essWindSensorHeight',
-            ('essNumTemperatureSensors', 'none', 'int'): 'essNumTemperatureSensors',
-            ('numEssPavementSensors', 'none', 'int'): 'numEssPavementSensors',
-            ('numEssSubSurfaceSensors', 'none', 'int'): 'numEssSubSurfaceSensors',
-            ('alert', 'none', 'bool'): 'alert',
-            ('alertAppliesTo', 'none', 'text'): 'alertAppliesTo',
-            ('qc_pass', 'none', 'bool'): 'qc_pass',
-            ('icon', '', ''): 'icon'}
-
-
-    json_dict = {}
-
-    # Replace the keys in the dictionary with the short keys
-    for i in range(len(dict)):
-        json_dict.update({metadataDF.iloc[i, 0]: {key_map[k]: v for k, v in dict[i].items()}})
-
-    # Code to merge metadata dictionaries, replacing old values with new where able
-    def metadataMerge(old_dct, new_dct):
-        res_dct = {}
-        for key in set(list(old_dct.keys())+list(new_dct.keys())):
-            try:
-                if key in old_dct and key in new_dct:
-                    res_dct[key] = new_dct[key]
-                elif key in old_dct and not(key in new_dct):
-                    res_dct[key] = old_dct[key]
-                else:
-                    res_dct[key] = new_dct[key]
-            except Exception:
-                continue
-        return res_dct
-
-    # Load a .pickle file containing the metadata for all stations
-    # Merge new data into the dictionary, and export back to a .pickle object
-    def persistent_metadata(dct):
-        full_dct = {}
-        pdata = {}
-        try:
-            with open(pickle_path,'rb') as f:
-                pdata = pickle.load(f)
-        except Exception:
-            pass
-
-        full_dct = metadataMerge(pdata,dct)
-        with open(pickle_path, 'wb') as f2:
-            pickle.dump(full_dct, f2)
-        return full_dct
-
-    full_metadata_dict = {}
-    full_metadata_dct = persistent_metadata(json_dict)
-    json_str = json.dumps([full_metadata_dct])
-
-    # Write dictionary to JSON file
-    try:
-        with open(json_path,'w') as fp:
-            fp.write(json_str)
-    except Exception:
-        pass
-
-
-    # Begin exporting sensor data to JSON file
-    times, stations = sensorDataDF[('timestamp:utc','sec','epoch time')], sensorDataDF[('station','id','string')]
-    fileNames = []
-    for i in range(len(times)):
-        fileBase = datetime.fromtimestamp(times[i]).astimezone(timezone.utc)
-        stationPath = output_path + stations[i]
-        try:
-            os.mkdir(stationPath)
-        except:
-            None
-
-        # Tries to create file with the headers, if already created, then append data without headers
-
-        # Process data files into daily files
-        try:
-            sensorDataDF.loc[[i]].to_csv(path_or_buf = stationPath + '/day_' + fileBase.strftime('%Y%m%d') + '0000.csv', index=False, mode='x')
-        except:
-            sensorDataDF.loc[[i]].to_csv(path_or_buf = stationPath + '/day_' + fileBase.strftime('%Y%m%d') + '0000.csv', index=False, mode='a', header=False)
-
-        # Process data files into monthly files
-        try:
-            sensorDataDF.loc[[i]].to_csv(path_or_buf = stationPath + '/month_' + fileBase.strftime('%Y%m') + '000000.csv', index=False, mode='x')
-        except:
-            sensorDataDF.loc[[i]].to_csv(path_or_buf = stationPath + '/month_' + fileBase.strftime('%Y%m') + '000000.csv', index=False, mode='a', header=False)
-
-        # Process data files into yearly files
-        try:
-            sensorDataDF.loc[[i]].to_csv(path_or_buf = stationPath + '/year_' + fileBase.strftime('%Y') + '00000000.csv', index=False, mode='x')
-        except:
-            sensorDataDF.loc[[i]].to_csv(path_or_buf = stationPath + '/year_' + fileBase.strftime('%Y') + '00000000.csv', index=False, mode='a', header=False)
-
+    return sensorDataDF, metadataDF
 
 
 def main():
     parser = optparse.OptionParser()
     parser.add_option('--district', dest='district')
     parser.add_option('--file', dest='data_file')
+    parser.add_option('--output', dest='output_file', default='rwis_combined.csv',
+                      help='Output CSV filename (default: rwis_combined.csv)')
+    parser.add_option('--metadata-output', dest='metadata_output', default='rwis_metadata_combined.csv',
+                      help='Metadata output CSV filename (default: rwis_metadata_combined.csv)')
     options, args = parser.parse_args()
     
-    exportAlertParameters()
+    # Export alert parameters (optional - can be saved if needed)
+    alertParams = exportAlertParameters()
+    
+    all_sensor_data = []
+    all_metadata = []
 
-    district = options.district
-    file = options.data_file
+    # Process single file or multiple files
+    if options.data_file and options.district:
+        # Single file mode
+        sensorDF, metaDF = processData(options.data_file, options.district)
+        all_sensor_data.append(sensorDF)
+        all_metadata.append(metaDF)
+    else:
+        # Multiple files mode
+        import glob
+        files = sorted(glob.glob("rwisStatusD*.csv"))
+        
+        if not files:
+            print("No input files found.")
+            return
+        
+        for f in files:
+            d = f.replace("rwisStatus", "").replace(".csv", "")
+            sensorDF, metaDF = processData(f, d)
+            all_sensor_data.append(sensorDF)
+            all_metadata.append(metaDF)
+    
+    # Combine all DataFrames
+    if all_sensor_data:
+        combined_sensor_data = pd.concat(all_sensor_data, ignore_index=True)
+        combined_metadata = pd.concat(all_metadata, ignore_index=True)
+        
+        # Save to CSV files
+        print(f"\nSaving combined sensor data to {options.output_file}")
+        combined_sensor_data.to_csv(options.output_file, index=False)
+        
+        print(f"Saving combined metadata to {options.metadata_output}")
+        combined_metadata.to_csv(options.metadata_output, index=False)
+        
+        print(f"\nTotal records processed: {len(combined_sensor_data)}")
+        if ('station', 'id', 'string') in combined_sensor_data.columns:
+            print(f"Total stations: {combined_sensor_data[('station', 'id', 'string')].nunique()}")
+        
+        print("\nProcessing complete!")
+    else:
+        print("No data processed.")
 
-    if file and district:
-        processData(file, district)
-        return
 
-    import glob
-    files = sorted(glob.glob("rwisStatusD*.csv"))
-
-    if not files:
-        print("No input files found.")
-        return
-
-    for f in files:
-        d = f.replace("rwisStatus", "").replace(".csv", "")
-        print("processing", f, "district", d)
-        processData(f, d)
+if __name__ == "__main__":
+    main()
