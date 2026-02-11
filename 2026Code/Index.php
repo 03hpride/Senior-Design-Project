@@ -8,9 +8,11 @@ try {
     die("Database connection failed: " . $e->getMessage());
 }
 
-$rwisDir = __DIR__ . "/output/rwis";
-$stations = loadStations($rwisDir);
-$currentConditions = loadCurrentConditions($rwisDir);
+$combinedFile = __DIR__ . "/rwis_combined.csv";
+$metadataFile = __DIR__ . "/rwis_metadata_combined.csv";
+$stations = loadStations($combinedfile);
+$currentConditions = loadCurrentConditions($combinedFile);
+$parameters = loadParameters($metadataFile);
 
 if (isset($_POST['create_alert'])) {
 
