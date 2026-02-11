@@ -1,7 +1,7 @@
 <?php
 $baseDir = __DIR__;
-$combinedFile = $baseDir . "/rwis_combined.csv";
-$metadataFile = $baseDir . "/rwis_metadata_combined.csv";
+$combinedFile = $baseDir . "/rwis_processed.csv";
+$metadataFile = $baseDir . "/rwis_metadata_processed.csv";
 
 function loadStations($file) {
     if (!file_exists($file)) {
@@ -48,14 +48,21 @@ function loadParameters($file) {
     $parameters = [];
     if (($h = fopen($file, "r")) !== false) {
         $header = fgetcsv($h);
-        $parameterIndex = array_search("parameter", $header);
-        $unitIndex = array_search("unit", $header);
-
-        while (($row = fgetcsv($h)) !== false) {
-            if ($parameterIndex !== false) {
-                $key = $row[$parameterIndex];
-                $unit = $unitIndex !== false ? $row[$unitIndex] : "";
-                $parameters[$key] = ["unit" => $unit];
+        $units = fgetcsv($h);  // Second row contains units
+        
+        // Only include these parameters
+        $allowedParameters = [
+            'essAirTemperature.1' => 'Air Temperature',
+            'essRelativeHumidity' => 'Humidity',
+            'essAvgWindSpeed' => 'Wind Speed',
+            'essPrecipitationOneHour' => 'Precipitation'
+        ];
+        
+        foreach ($header as $index => $columnName) {
+            if (isset($allowedParameters[$columnName])) {
+                $unit = isset($units[$index]) ? $units[$index] : "";
+                $displayName = $allowedParameters[$columnName];
+                $parameters[$columnName] = ["unit" => $unit, "display" => $displayName];
             }
         }
         fclose($h);
