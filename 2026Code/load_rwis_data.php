@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 $baseDir = dirname(__FILE__);
-$rwisDir = realpath($baseDir . "/output/RWIS_data");
+$rwisDir = realpath($baseDir . "/output/rwis");
 
 if ($rwisDir === false) {
     echo json_encode(["error" => "RWIS data directory not found."]);
@@ -12,7 +12,7 @@ if ($rwisDir === false) {
 $parameterFile = $rwisDir . "/alertParameters.json";
 $alertParameters = [];
 
-if (file_exists($paramterFile)) {
+if (file_exists($parameterFile)) {
     $json = file_get_contents($parameterFile);
     $alertParameters = json_decode($json, true);
     if (!is_array($alertParameters)) {
